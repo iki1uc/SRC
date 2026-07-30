@@ -1,0 +1,31 @@
+RESPO_STATION.doc2 = function() {
+    return `
+RESPO – Station Dokumentation (SRC‑Imperium)
+============================================
+
+Name: ${this.name}
+Präsenz: ${this.data.präsenz}
+
+Form (Operation):
+${this.data.form}
+
+Struktur (Achsenanker):
+${this.data.struktur}
+
+Verhalten (Regelwerk):
+${this.data.verhalten}
+
+Kontinuum:
+- Degree: ${this.degree}
+- Fulfillment: ${this.fulfillment}
+- Manifest: ${this.manifest().manifest}
+
+Verbindungen:
+- Achsenfeld: SDSA
+- Operator: CO
+- Priorität: PQ
+- Prozess: PP
+
+Status: FINALISIERT
+`;
+};
