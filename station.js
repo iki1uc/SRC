@@ -20,6 +20,37 @@ export function Station(name, data) {
                 degree: 360,
                 fulfillment: 100
             };
+        },
+
+        doc2() {
+            return `
+${this.name} – Station Dokumentation (SRC‑Imperium)
+============================================
+
+Form:
+${this.data.form}
+
+Struktur:
+${this.data.struktur}
+
+Verhalten:
+${this.data.verhalten}
+
+Präsenz:
+${this.data.präsenz}
+
+Degree: ${this.degree}
+Fulfillment: ${this.fulfillment}
+Manifest: ${this.manifest().manifest}
+
+Verbindungen:
+- Achsenfeld: SDSA
+- Operator: CO
+- Priorität: PQ
+- Prozess: PP
+
+Status: FINALISIERT
+`;
         }
     };
 }
