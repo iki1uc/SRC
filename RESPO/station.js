@@ -9,3 +9,6 @@ export const RESPO_STATION = Station("RESPO", {
     verhalten: r,
     präsenz: "RESPO‑Anker"
 });
+import { SRC_RetrievalAPI } from "../api/retrieval.js";
+import { SRC_SearchAPI } from "../api/search.js";
+import { SRC_ChatAPI } from "../api/chat.js";
