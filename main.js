@@ -1,10 +1,11 @@
-import { SRC } from "./src.js";
+import { RESPO_STATION } from "./RESPO/station.js";
+import { SDSA_STATION } from "./SDSA/station.js";
+import { CO_STATION } from "./co/station.js";
+import { PQ_STATION } from "./PQ/station.js";
+import { PP_STATION } from "./PP/station.js";
 
-import form from "./Koerperisierung/form/f.md";
-import struktur from "./Koerperisierung/Struktur/s.md";
-import verhalten from "./Koerperisierung/Verhalten/v.md";
-import präsenz from "./Koerperisierung/Präsenz/p.md";
-
-const körper = SRC.körperisieren(form, struktur, verhalten, präsenz);
-
-console.log(körper);
+console.log(RESPO_STATION.act());
+console.log(SDSA_STATION.manifest());
+console.log(CO_STATION.act());
+console.log(PQ_STATION.manifest());
+console.log(PP_STATION.act());
