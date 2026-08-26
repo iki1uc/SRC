@@ -1,1 +1,16 @@
+document.querySelectorAll('.seg').forEach(seg => {
+
+  let nodes = seg.innerText.split('→').map(n => n.trim());
+
+  let i = 0;
+
+  setInterval(() => {
+    seg.innerHTML = nodes.map((n, idx) => {
+      return idx === i ? `<span class="active">${n}</span>` : n;
+    }).join(' → ');
+
+    i = (i + 1) % nodes.length;
+
+  }, 600); // Industry 6.0 Takt
+});
 
