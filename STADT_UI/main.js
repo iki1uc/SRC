@@ -11,4 +11,3 @@ export function updateUI() {
         document.getElementById(`${m}_bind`).innerText = r.bindung.toFixed(2);
     });
 }
-
