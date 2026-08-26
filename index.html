@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXIOM · Rechenwerk · Kuck‑Kuck‑Uhr · Team‑Visualisierung</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a12;
+            color: #e6f6ff;
+            font-family: 'Consolas', monospace;
+            min-height: 100vh;
+            padding: 16px;
+            background-image: radial-gradient(ellipse at 30% 40%, #0a0a20 0%, #000 100%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #ffd700;
+            letter-spacing: 6px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+        .header .sub {
+            color: #445555;
+            font-size: 11px;
+            letter-spacing: 3px;
+            margin-top: 4px;
+        }
+        .header .sub span { color: #88ddbb; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .canvas-wrap {
+            background: rgba(10,10,20,0.4);
+            border: 1px solid rgba(255,255,255,0.02);
+            border-radius: 16px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+        }
+        .canvas-wrap h2 {
+            color: #ffd700;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+        #triCanvas {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16/10;
+            background: #0a0a12;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.02);
+            display: block;
+        }
+
+        .panel {
+            background: rgba(10,10,20,0.4);
+            border: 1px solid rgba(255,255,255,0.02);
+            border-radius: 16px;
+            padding: 12px;
+            backdrop-filter: blur(10px);
+        }
+        .panel h2 {
+            color: #ffd700;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .status-grid .item {
+            background: #0e0e1a;
+            border: 1px solid #1a1a2a;
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+        .status-grid .item .label { color: #445555; }
+        .status-grid .item .value { color: #88ddbb; font-weight: bold; }
+
+        .log {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 10px;
+            color: #88ddbb;
+            max-height: 100px;
+            overflow-y: auto;
+            font-family: monospace;
+            line-height: 1.4;
+            border: 1px solid rgba(255,255,255,0.02);
+            margin-top: 6px;
+        }
+        .log .entry { padding: 1px 0; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .log .time { color: #445555; }
+        .log .ok { color: #4f4; }
+        .log .warn { color: #ffaa00; }
+        .log .boom { color: #ff7043; }
+        .log .wirbel { color: #ffca28; }
+        .log .echo { color: #4fc3f7; }
+        .log .learn { color: #66bb6a; }
+
+        .controls {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 6px 0;
+        }
+        button {
+            background: #111;
+            color: #9cf;
+            border: 1px solid #333;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 10px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #1a1a2a;
+            border-color: #ffd700;
+        }
+        button.primary {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        button.primary:hover {
+            background: #ffd700;
+            color: #000;
+        }
+        button.boom {
+            border-color: #ff7043;
+            color: #ff7043;
+        }
+        button.boom:hover {
+            background: #ff7043;
+            color: #000;
+        }
+        button.wirbel {
+            border-color: #ffca28;
+            color: #ffca28;
+        }
+        button.wirbel:hover {
+            background: #ffca28;
+            color: #000;
+        }
+
+        .krümmung-bar {
+            background: #0e0e1a;
+            border: 1px solid #1a1a2a;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: #666;
+        }
+        .krümmung-bar .wert {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .krümmung-bar .label { color: #ffd700; }
+
+        .footer {
+            text-align: center;
+            margin-top: 16px;
+            padding: 10px;
+            color: #222;
+            font-size: 8px;
+            letter-spacing: 2px;
+            border-top: 1px solid rgba(255,255,255,0.01);
+        }
+        .footer span { color: #ffd700; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <h1>🌀 AXIOM · RECHENWERK · KUCK‑KUCK‑UHR</h1>
+        <div class="sub">Boomerang · Wirbelwind · Team‑Verbindungen · Energie‑Pulse · <span>wieimmer4u</span></div>
+    </div>
+
+    <!-- ===== GRID ===== -->
+    <div class="grid">
+
+        <!-- ===== LINKER BEREICH: CANVAS ===== -->
+        <div class="canvas-wrap">
+            <h2>🌀 TEAM‑VISUALISIERUNG · 6 DREIECKE</h2>
+            <canvas id="triCanvas"></canvas>
+            <div style="display:flex;gap:12px;margin-top:6px;font-size:9px;color:#445555;flex-wrap:wrap;">
+                <span>🟦 Echo/Hall</span>
+                <span>🟧 Boomerang</span>
+                <span>🟨 Wirbelwind</span>
+                <span>🟩 Balance</span>
+                <span>🟪 Control</span>
+                <span style="color:#ffd700;">⚡ TMP · RA · RE</span>
+            </div>
+        </div>
+
+        <!-- ===== RECHTE BEREICH: PANEL ===== -->
+        <div class="panel">
+            <h2>⚙️ RECHENWERK · UHRWERK</h2>
+
+            <div class="status-grid">
+                <div class="item"><span class="label">🌀 Zyklus:</span> <span class="value" id="cycle-count">0</span></div>
+                <div class="item"><span class="label">⏱️ Takt:</span> <span class="value" id="takt-count">0</span></div>
+                <div class="item"><span class="label">♾️ Harmonie:</span> <span class="value" id="harmonie-value">0.00</span></div>
+                <div class="item"><span class="label">🌀 Krümmung:</span> <span class="value" id="krümmung-value">0.000</span></div>
+            </div>
+
+            <!-- Krümmungsantrieb -->
+            <div class="krümmung-bar">
+                <span class="label">🌀 KRÜMMUNGSANTRIEB</span>
+                <span class="wert" id="krümmung-bar">0.000</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="primary" id="btn-run3">▶ RUN3</button>
+                <button class="boom" id="btn-boomerang">💥 BOOMERANG</button>
+                <button class="wirbel" id="btn-wirbel">🌀 WIRBELWIND</button>
+                <button id="btn-auto">▶ AUTO</button>
+                <button id="btn-reset">⟲ RESET</button>
+            </div>
+
+            <!-- Log -->
+            <div class="log" id="log">
+                <div class="entry"><span class="time">[INIT]</span> <span class="ok">AXIOM · Rechenwerk · Kuck‑Kuck‑Uhr geladen</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <div class="footer">
+        <span>🌀</span> AXIOM · Rechenwerk · Kuck‑Kuck‑Uhr · Team‑Visualisierung · <span>wieimmer4u</span>
+    </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- SCRIPT – DAS KOMPLETTE AXIOM‑SYSTEM                          -->
+<!-- ============================================================ -->
+<script>
+// ================================================================
+// 1. TRI‑TEAM (1–6) – DAS RECHENWERK
+// ================================================================
+
+const TRI = {
+    1: { id: 1, code: "y", name: "Tri-Y", role: "Echo",      module: "ECHO_HALL",      x: 200, y: 280, z: 0, tmp: 1, ra: 1, re: 1 },
+    2: { id: 2, code: "x", name: "Tri-X", role: "Hall",      module: "ECHO_HALL",      x: 400, y: 280, z: 0, tmp: 1, ra: 1, re: 1 },
+    3: { id: 3, code: "z", name: "Tri-Z", role: "Boomerang", module: "TRI_BOOMERANG",  x: 600, y: 280, z: 0, tmp: 1, ra: 1, re: 1 },
+    4: { id: 4, code: "q", name: "Tri-Q", role: "Wirbel",    module: "WIRBEL_ABFUHR",  x: 300, y: 480, z: 0, tmp: 1, ra: 1, re: 1 },
+    5: { id: 5, code: "f", name: "Tri-F", role: "Balance",   module: "TMP_BALANCE",    x: 500, y: 480, z: 0, tmp: 1, ra: 1, re: 1 },
+    6: { id: 6, code: "d", name: "Tri-D", role: "Control",   module: "TMP_CONTROL",    x: 700, y: 480, z: 0, tmp: 1, ra: 1, re: 1 }
+};
+
+// ================================================================
+// 2. FARBEN (harmonisch)
+// ================================================================
+
+const COLORS = {
+    "Echo": "#4FC3F7",
+    "Hall": "#81D4FA",
+    "Boomerang": "#FF7043",
+    "Wirbel": "#FFCA28",
+    "Balance": "#66BB6A",
+    "Control": "#AB47BC"
+};
+
+// ================================================================
+// 3. MODULE
+// ================================================================
+
+// ─── MODUL 3: BOOMERANG ──────────────────────────────────────
+function TRI_BOOMERANG(tri) {
+    const overflow = tri.tmp - 1.2;
+    if (overflow > 0) {
+        tri.tmp -= overflow * 0.7;
+        return overflow * 0.3;
+    }
+    return 0;
+}
+
+// ─── MODUL 4: WIRBELWIND ──────────────────────────────────────
+function WIRBEL_ABFUHR(tri) {
+    if (tri.tmp > 1.2) {
+        tri.tmp -= (tri.tmp - 1.2) * 0.5;
+        tri.ra  *= 0.9;
+        tri.re  *= 0.9;
+    }
+}
+
+// ─── MODUL 1+2: ECHO / HALL ──────────────────────────────────
+function ECHO_HALL_CHECK(tri) {
+    const echo = tri.tmp * 0.3;
+    const hall = tri.re * 0.2;
+    const missing = [];
+    if (tri.tmp < 0.8) missing.push("TMP fehlt");
+    if (tri.ra  < 0.8) missing.push("Reaktion fehlt");
+    if (tri.re  < 0.8) missing.push("Resonanz fehlt");
+    return { echo, hall, missing };
+}
+
+// ─── MODUL 5: BALANCE ──────────────────────────────────────────
+function TMP_BALANCE(tri) {
+    tri.tmp = (tri.tmp + tri.ra + tri.re) / 3;
+}
+
+// ─── MODUL 6: CONTROL ──────────────────────────────────────────
+function TMP_CONTROL(tri) {
+    tri.tmp = Math.min(1.5, tri.tmp);
+    tri.ra  = Math.min(1.5, tri.ra);
+    tri.re  = Math.min(1.5, tri.re);
+}
+
+// ─── AXIOM LERNEN ──────────────────────────────────────────────
+function AXIOM_LEARN(list) {
+    list.forEach(tri => {
+        tri.tmp += (Math.random() - 0.5) * 0.04;
+        tri.ra  += (tri.tmp - 1) * 0.02;
+        tri.re  += (tri.ra - 1) * 0.02;
+        tri.tmp = Math.min(1.8, Math.max(0.4, tri.tmp));
+        tri.ra  = Math.min(1.8, Math.max(0.4, tri.ra));
+        tri.re  = Math.min(1.8, Math.max(0.4, tri.re));
+    });
+}
+
+// ================================================================
+// 4. STATE
+// ================================================================
+
+let cycle = 0;
+let takt = 0;
+let running = false;
+let autoTimer = null;
+let logEntries = [];
+const MAX_LOG = 30;
+
+// ================================================================
+// 5. LOG
+// ================================================================
+
+function log(msg, type = 'ok') {
+    const logDiv = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.className = 'entry';
+    const time = new Date().toLocaleTimeString();
+    const cls = type === 'ok' ? 'ok' : type === 'boom' ? 'boom' : type === 'wirbel' ? 'wirbel' : type === 'echo' ? 'echo' : type === 'learn' ? 'learn' : 'warn';
+    entry.innerHTML = `<span class="time">[${time}]</span> <span class="${cls}">${msg}</span>`;
+    logDiv.appendChild(entry);
+    logDiv.scrollTop = logDiv.scrollHeight;
+    while (logDiv.children.length > MAX_LOG) logDiv.removeChild(logDiv.firstChild);
+}
+
+// ================================================================
+// 6. RUN3 – DAS RECHENWERK
+// ================================================================
+
+function RUN3() {
+    cycle++;
+    takt++;
+    const triList = Object.values(TRI);
+
+    triList.forEach(tri => {
+        switch (tri.module) {
+            case "TRI_BOOMERANG":
+                const rest = TRI_BOOMERANG(tri);
+                if (rest > 0.05) log(`💥 ${tri.name} Boomerang: ${rest.toFixed(2)}`, 'boom');
+                break;
+            case "WIRBEL_ABFUHR":
+                WIRBEL_ABFUHR(tri);
+                if (tri.tmp > 1.1) log(`🌀 ${tri.name} Wirbelwind: ${tri.tmp.toFixed(2)}`, 'wirbel');
+                break;
+            case "ECHO_HALL":
+                const eh = ECHO_HALL_CHECK(tri);
+                if (eh.missing.length > 0) log(`🔊 ${tri.name} fehlt: ${eh.missing.join(', ')}`, 'echo');
+                break;
+            case "TMP_BALANCE":
+                TMP_BALANCE(tri);
+                break;
+            case "TMP_CONTROL":
+                TMP_CONTROL(tri);
+                break;
+        }
+    });
+
+    AXIOM_LEARN(triList);
+
+    // Harmonie berechnen
+    const avg = triList.reduce((s, t) => s + t.tmp + t.ra + t.re, 0) / (triList.length * 3);
+    const harm = (avg / 1.5) * 100;
+
+    // Krümmung
+    const kr = triList.reduce((s, t) => s + (t.tmp + t.ra + t.re), 0) / (triList.length * 3);
+
+    // UI aktualisieren
+    document.getElementById('cycle-count').textContent = cycle;
+    document.getElementById('takt-count').textContent = takt;
+    document.getElementById('harmonie-value').textContent = Math.min(100, harm).toFixed(2);
+    document.getElementById('krümmung-value').textContent = kr.toFixed(3);
+    document.getElementById('krümmung-bar').textContent = kr.toFixed(3);
+
+    drawVisualization();
+
+    if (cycle % 5 === 0) {
+        log(`🌀 Zyklus ${cycle} · Harmonie ${Math.min(100, harm).toFixed(1)}% · Krümmung ${kr.toFixed(3)}`, 'learn');
+    }
+
+    return { cycle, takt, harm, kr };
+}
+
+// ================================================================
+// 7. VISUALISIERUNG (Canvas)
+// ================================================================
+
+function drawVisualization() {
+    const canvas = document.getElementById('triCanvas');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const w = rect.width - 24 || 800;
+    const h = w * 0.625 || 500;
+    canvas.width = w;
+    canvas.height = h;
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+
+    const triList = Object.values(TRI);
+
+    // Verbindungen (Team‑Linien)
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 8]);
+    for (let i = 0; i < triList.length; i++) {
+        for (let j = i + 1; j < triList.length; j++) {
+            const a = triList[i], b = triList[j];
+            const dist = Math.hypot(a.x - b.x, a.y - b.y);
+            const alpha = Math.min(1, 60 / dist);
+            ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.08})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+        }
+    }
+    ctx.setLineDash([]);
+
+    // Nodes zeichnen
+    triList.forEach(tri => {
+        const x = tri.x, y = tri.y;
+
+        // Schatten
+        ctx.shadowColor = 'rgba(0,0,0,0.4)';
+        ctx.shadowBlur = 20;
+
+        // Body
+        const radius = 22 + (tri.tmp - 1) * 6;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = COLORS[tri.role] || '#666';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Rand
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Name
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(tri.name, x, y - 2);
+
+        // Modul
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.font = '8px Arial';
+        ctx.textBaseline = 'top';
+        ctx.fillText(tri.module, x, y + radius + 4);
+
+        // Energie‑Kreise (TMP, RA, RE)
+        const eSize = 6 + tri.tmp * 4;
+        // TMP
+        ctx.beginPath();
+        ctx.arc(x + radius + 10, y - 10, eSize, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(41, 182, 246, ${0.5 + tri.tmp * 0.3})`;
+        ctx.fill();
+        // RA
+        ctx.beginPath();
+        ctx.arc(x + radius + 10, y + 10, eSize * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(102, 187, 106, ${0.5 + tri.ra * 0.3})`;
+        ctx.fill();
+        // RE
+        ctx.beginPath();
+        ctx.arc(x + radius + 10, y + 28, eSize * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(239, 83, 80, ${0.5 + tri.re * 0.3})`;
+        ctx.fill();
+
+        // Boomerang‑Impuls (kleiner Blitz)
+        if (tri.module === "TRI_BOOMERANG" && tri.tmp > 1.1) {
+            ctx.fillStyle = `rgba(255,112,67,${(tri.tmp - 1) * 1.5})`;
+            ctx.font = '16px Arial';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⚡', x + radius + 20, y - 20);
+        }
+
+        // Wirbelwind‑Effekt (kleine Partikel)
+        if (tri.module === "WIRBEL_ABFUHR" && tri.tmp > 1.1) {
+            for (let p = 0; p < 8; p++) {
+                const angle = (p / 8) * Math.PI * 2 + Date.now() / 3000;
+                const dist = 12 + Math.sin(Date.now() / 500 + p) * 6;
+                const px = x + Math.cos(angle) * dist;
+                const py = y + Math.sin(angle) * dist;
+                ctx.beginPath();
+                ctx.arc(px, py, 2 + tri.tmp * 0.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,202,40,${0.3 + tri.tmp * 0.2})`;
+                ctx.fill();
+            }
+        }
+    });
+}
+
+// ================================================================
+// 8. CONTROLS
+// ================================================================
+
+document.getElementById('btn-run3').addEventListener('click', () => {
+    RUN3();
+    log('▶ RUN3 ausgeführt', 'ok');
+});
+
+document.getElementById('btn-boomerang').addEventListener('click', () => {
+    const tri = TRI[3];
+    const rest = TRI_BOOMERANG(tri);
+    log(`💥 Boomerang manuell: ${rest.toFixed(2)}`, 'boom');
+    drawVisualization();
+});
+
+document.getElementById('btn-wirbel').addEventListener('click', () => {
+    const tri = TRI[4];
+    WIRBEL_ABFUHR(tri);
+    log(`🌀 Wirbelwind manuell: ${tri.tmp.toFixed(2)}`, 'wirbel');
+    drawVisualization();
+});
+
+document.getElementById('btn-auto').addEventListener('click', () => {
+    running = !running;
+    if (running) {
+        autoTimer = setInterval(() => RUN3(), 1200);
+        document.getElementById('btn-auto').textContent = '⏸ PAUSE';
+        log('▶ AUTO gestartet', 'ok');
+    } else {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        document.getElementById('btn-auto').textContent = '▶ AUTO';
+        log('⏸ AUTO pausiert', 'warn');
+    }
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+    Object.values(TRI).forEach(t => {
+        t.tmp = 1;
+        t.ra = 1;
+        t.re = 1;
+    });
+    cycle = 0;
+    takt = 0;
+    if (running) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+        running = false;
+        document.getElementById('btn-auto').textContent = '▶ AUTO';
+    }
+    document.getElementById('cycle-count').textContent = '0';
+    document.getElementById('takt-count').textContent = '0';
+    document.getElementById('harmonie-value').textContent = '0.00';
+    document.getElementById('krümmung-value').textContent = '0.000';
+    document.getElementById('krümmung-bar').textContent = '0.000';
+    drawVisualization();
+    log('⟲ RESET – System zurückgesetzt', 'warn');
+});
+
+// ================================================================
+// 9. TASTATUR
+// ================================================================
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'r' || e.key === 'R') document.getElementById('btn-run3').click();
+    if (e.key === 'b' || e.key === 'B') document.getElementById('btn-boomerang').click();
+    if (e.key === 'w' || e.key === 'W') document.getElementById('btn-wirbel').click();
+    if (e.key === ' ') { e.preventDefault(); document.getElementById('btn-auto').click(); }
+    if (e.key === 'x' || e.key === 'X') document.getElementById('btn-reset').click();
+});
+
+// ================================================================
+// 10. INIT
+// ================================================================
+
+drawVisualization();
+log('🌀 AXIOM · Rechenwerk · Kuck‑Kuck‑Uhr · bereit', 'ok');
+log('⌨️  r=RUN3  b=Boomerang  w=Wirbelwind  space=Auto  x=Reset', 'ok');
+
+// Auto-Start nach 1 Sekunde
+setTimeout(() => {
+    document.getElementById('btn-auto').click();
+}, 800);
+
+console.log('🌀 AXIOM · Rechenwerk · Kuck‑Kuck‑Uhr');
+console.log('⌨️  r=RUN3  b=Boomerang  w=Wirbelwind  space=Auto  x=Reset');
+</script>
+
+</body>
+</html>
