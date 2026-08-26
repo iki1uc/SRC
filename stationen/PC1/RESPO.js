@@ -1,36 +1,20 @@
-import { ROLES } from "./LINK.js";
 import { SIX } from "./CONNECT.js";
-
-export function autoSwitchRole(p) {
-    const s = SIX(p);
-
-    if (s.konsequenz > 1.2) p.role = "alpha";
-    else if (s.konsequenz > 0.9) p.role = "beta";
-    else p.role = "gamma";
-
-    const r = ROLES[p.role];
-    p.ra = r.ra;
-    p.re = r.re;
-    p.kraft = r.kraft;
-
-    return p.role;
-}
+import { ROOT_NORM } from "./CONNECT.js";
+import { MOVE } from "./MOVE.js";
 
 export const RESPO = {
-    react(p) {
-        const role = autoSwitchRole(p);
-        const s = SIX(p);
+    react(station, root) {
+
+        MOVE(station);        // spontane Moves
+        ROOT_NORM(root, station); // Norm ohne Kontrolle
+
+        const s = SIX(station);
 
         return {
-            role,
-            ra: p.ra,
-            re: p.re,
-            kraft: p.kraft,
+            role: station.role,
             effizienz: s.effizienz,
             wohlbefinden: s.wohlbefinden,
-            freude: p.re,
-            treue: p.kraft,
-            bindung: p.re * p.kraft
+            bindung: station.re * station.kraft
         };
     }
 };
